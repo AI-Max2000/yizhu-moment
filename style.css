@@ -48,3 +48,12 @@
 @media(max-width:1050px) and (min-width:701px){.ritual-scene{grid-template-columns:112px minmax(0,1fr);gap:10px}.scene-copy h4{font-size:17px}.scene-jiao{width:73px}.scene-paper{left:16px}.scene-object:after{left:9px}}
 @media(max-width:700px){.ritual-scenes{margin-top:24px}.ritual-scene{grid-template-columns:112px minmax(0,1fr);gap:13px;min-height:146px}.scene-copy h4{font-size:17px}.scene-copy p{font-size:11px}.scene-link{font-size:11px;min-height:26px;margin-top:5px}.scene-jiao{width:75px}.scene-paper{left:17px}.scene-object:after{left:9px}.large .feature-foot{margin-top:17px}}
 @media(max-width:360px){.feature.large{padding:22px 19px}.ritual-scene{grid-template-columns:95px minmax(0,1fr);gap:10px}.scene-copy h4{font-size:16px}.scene-jiao{width:65px}.scene-paper{left:11px;width:74px}.scene-object:after{left:4px;width:84px}.scene-cup{width:202px}}
+
+/* A real button over the two existing images makes the objects directly touchable. */
+.cast-trigger[hidden]{display:none}
+.cast-trigger{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;background:transparent;border:0;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.cast-trigger:focus-visible{outline:1px solid var(--gold);outline-offset:-10px}
+.cast-trigger[aria-disabled="true"]{cursor:wait}
+.cast-hint{position:absolute;left:24px;right:24px;bottom:65px;color:var(--gold);font-size:12px;letter-spacing:.08em;line-height:1.7;text-align:center;pointer-events:none}
+.preview-art[data-step="2"] #ritual-image,.preview-art[data-step="2"] .second-jiaobei{pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+@media(max-width:700px){.cast-hint{bottom:54px;font-size:11px;letter-spacing:.04em}}
