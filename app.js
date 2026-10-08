@@ -1,5 +1,6 @@
-import { createDrawPreview } from './draw-preview.js';
-let drawPreview, casting=false;
+import { createDrawPreview } from './draw-preview.js?v=14da2e2b0508';
+import { createPaperPreview } from './paper-preview.js?v=8b8399f642f1';
+let drawPreview, paperPreview, casting=false;
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motion = !reduced.matches;
 const root = document.documentElement;
@@ -10,7 +11,7 @@ const ctx = canvas.getContext('2d');
 let raf = 0, heroVisible = true, frame=0, lastTime=0;
 const particles = Array.from({length:32},(_,i)=>({x:Math.random(),y:Math.random(),r:.3+Math.random()*1.1,v:.015+Math.random()*.025,a:.15+Math.random()*.35}));
 function draw(time=0){raf=0;if(!motion||!heroVisible||document.hidden||!ctx)return;const dt=Math.min((time-lastTime)/1000,.05);lastTime=time;frame+=dt;const w=hero.clientWidth,h=hero.clientHeight,dpr=Math.min(devicePixelRatio||1,1.5);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);for(const p of particles){p.y-=p.v*dt;if(p.y<0)p.y=1;ctx.beginPath();ctx.arc(p.x*w+Math.sin(frame*.25+p.y*9)*10,p.y*h,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(220,180,112,${p.a})`;ctx.fill();}raf=requestAnimationFrame(draw);}
-function syncMotion(){if(!motion&&casting)finishCast();drawPreview?.setMotion(motion);root.classList.toggle('no-motion',!motion);root.classList.toggle('js-motion',motion);motionButton.setAttribute('aria-pressed',String(!motion));motionButton.innerHTML=motion?'动效开启 <span aria-hidden="true">◌</span>':'动效暂停 <span aria-hidden="true">◌</span>';if(raf)cancelAnimationFrame(raf);raf=0;if(motion&&heroVisible&&!document.hidden){lastTime=performance.now();raf=requestAnimationFrame(draw);}}
+function syncMotion(){if(!motion&&casting)finishCast();drawPreview?.setMotion(motion);paperPreview?.setMotion(motion);root.classList.toggle('no-motion',!motion);root.classList.toggle('js-motion',motion);motionButton.setAttribute('aria-pressed',String(!motion));motionButton.innerHTML=motion?'动效开启 <span aria-hidden="true">◌</span>':'动效暂停 <span aria-hidden="true">◌</span>';if(raf)cancelAnimationFrame(raf);raf=0;if(motion&&heroVisible&&!document.hidden){lastTime=performance.now();raf=requestAnimationFrame(draw);}}
 motionButton.addEventListener('click',()=>{motion=!motion;syncMotion();});reduced.addEventListener('change',()=>{motion=!reduced.matches;syncMotion();});document.addEventListener('visibilitychange',syncMotion);
 new IntersectionObserver(entries=>{heroVisible=entries[0].isIntersecting;syncMotion();}).observe(hero);
 const revealObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');revealObserver.unobserve(entry.target);}});},{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));syncMotion();
@@ -58,10 +59,12 @@ function castJiaobei(){
 castTrigger.addEventListener('click',castJiaobei);
 secondJiaobei.addEventListener('animationend',event=>{if(event.animationName==='cast-two')finishCast();});
 art.addEventListener('dragstart',event=>{if(activeStep===2)event.preventDefault();});
-function setStep(index,focus=false){stopCast();activeStep=index;castTrigger.hidden=index!==2;castTrigger.setAttribute('aria-label','轻点筊杯，投掷一次');castHint.textContent='轻点任一枚筊杯，即可投掷';const s=steps[index];art.dataset.step=String(index);document.querySelector('.second-jiaobei').hidden=index!==2;document.querySelector('.paper-words').hidden=index!==3;ritualImage.hidden=index===1;if(s.image)ritualImage.src='./assets/'+s.image;ritualImage.alt=s.alt;ritualImage.classList.toggle('incense-preview',index===0);document.querySelector('#step-title').innerHTML=s.title;document.querySelector('#step-copy').textContent=s.copy;document.querySelector('#scene-label').textContent=s.label;action.disabled=false;action.innerHTML=s.action+' <span aria-hidden="true">✧</span>';feedback.textContent=index===2?'轻点画面中的任一枚筊杯，即可投掷。这是动作预览，不生成签文。':'这是仪式片段预览，不生成签文。';tabs.forEach((tab,i)=>{tab.setAttribute('aria-selected',String(i===index));tab.tabIndex=i===index?0:-1;});document.querySelector('#step-detail').setAttribute('aria-labelledby','step-tab-'+index);drawPreview.setVisible(index===1);if(focus)tabs[index].focus();}
+function setStep(index,focus=false){stopCast();activeStep=index;castTrigger.hidden=index!==2;castTrigger.setAttribute('aria-label','轻点筊杯，投掷一次');castHint.textContent='轻点任一枚筊杯，即可投掷';const s=steps[index];art.dataset.step=String(index);document.querySelector('.second-jiaobei').hidden=index!==2;ritualImage.hidden=index===1||index===3;if(s.image)ritualImage.src='./assets/'+s.image;ritualImage.alt=s.alt;ritualImage.classList.toggle('incense-preview',index===0);document.querySelector('#step-title').innerHTML=s.title;document.querySelector('#step-copy').textContent=s.copy;document.querySelector('#scene-label').textContent=s.label;action.disabled=false;action.innerHTML=s.action+' <span aria-hidden="true">✧</span>';feedback.textContent=index===2?'轻点画面中的任一枚筊杯，即可投掷。这是动作预览，不生成签文。':'这是仪式片段预览，不生成签文。';tabs.forEach((tab,i)=>{tab.setAttribute('aria-selected',String(i===index));tab.tabIndex=i===index?0:-1;});document.querySelector('#step-detail').setAttribute('aria-labelledby','step-tab-'+index);drawPreview.setVisible(index===1);paperPreview.setVisible(index===3);if(focus)tabs[index].focus();}
 tabs.forEach((tab,i)=>{tab.addEventListener('click',()=>setStep(i));tab.addEventListener('keydown',e=>{let n;if(e.key==='ArrowRight')n=(i+1)%4;if(e.key==='ArrowLeft')n=(i+3)%4;if(e.key==='Home')n=0;if(e.key==='End')n=3;if(n!==undefined){e.preventDefault();setStep(n,true);}});});
 drawPreview=createDrawPreview({art,onStatus(status){if(activeStep!==1)return;action.disabled=status.loading;action.innerHTML=status.action+' <span aria-hidden="true">✧</span>';feedback.textContent=status.message;}});
 drawPreview.setMotion(motion);
+paperPreview=createPaperPreview({art,onStatus(status){if(activeStep!==3)return;action.disabled=status.loading;action.innerHTML=status.action+' <span aria-hidden="true">✧</span>';feedback.textContent=status.message;}});
+paperPreview.setMotion(motion);
 document.querySelectorAll('[data-preview-step]').forEach(link=>link.addEventListener('click',event=>{
  if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();
@@ -71,7 +74,7 @@ document.querySelectorAll('[data-preview-step]').forEach(link=>link.addEventList
  document.querySelector('#experience').scrollIntoView({behavior:motion?'smooth':'instant',block:'start'});
  if(location.hash!=='#experience')history.pushState(null,'','#experience');
 }));
-action.addEventListener('click',()=>{if(activeStep===2){castJiaobei();return;}if(activeStep===1){drawPreview.activate();return;}clearTimeout(timer);art.classList.remove('animating');void art.offsetWidth;art.classList.add('animating');feedback.textContent=steps[activeStep].feedback;timer=setTimeout(()=>art.classList.remove('animating'),2200);});
+action.addEventListener('click',()=>{if(activeStep===3){paperPreview.activate();return;}if(activeStep===2){castJiaobei();return;}if(activeStep===1){drawPreview.activate();return;}clearTimeout(timer);art.classList.remove('animating');void art.offsetWidth;art.classList.add('animating');feedback.textContent=steps[activeStep].feedback;timer=setTimeout(()=>art.classList.remove('animating'),2200);});
 
 // Register the photographic smoke to the incense tip after each responsive crop.
 function placeSmoke(photo,smoke,container){
